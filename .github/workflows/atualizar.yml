@@ -1,0 +1,41 @@
+name: Atualizar dados GRAM
+
+on:
+  schedule:
+    # Todo dia às 01:20 UTC (22:20 em Brasília), depois do fechamento do candle diário
+    - cron: "20 1 * * *"
+  workflow_dispatch: # botão "Run workflow" na aba Actions
+
+permissions:
+  contents: write
+
+concurrency:
+  group: atualizar-gram
+  cancel-in-progress: false
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Baixar candles novos
+        run: python atualizar_gram.py --offline
+
+      - name: Commit e push (só se houver mudança)
+        run: |
+          if git diff --quiet; then
+            echo "Sem novidades."
+            exit 0
+          fi
+          ULTIMO=$(python -c "import json,re;s=open('dados/gram_1d.js',encoding='utf-8').read();print(json.loads(re.search(r'GRAM_META=(\{.*?\});',s).group(1))['ultimo'])")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add dados/gram_1d.csv dados/gram_1d.js gram_offline.html
+          git commit -m "Dados GRAM até ${ULTIMO}"
+          git push
