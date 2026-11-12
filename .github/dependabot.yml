@@ -1,0 +1,8 @@
+# Abre um PR quando sair versão nova de uma action usada nos workflows
+# (evita avisos de runtime Node descontinuado no futuro).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
