@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GRAM/USDT — Binance Spot | Histórico diário</title>
+<meta name="description" content="Histórico diário de candles GRAM/USDT (antigo TON) na Binance Spot, atualizado automaticamente.">
+<style>
+:root{color-scheme:dark;--bg:#0e131b;--panel:#151d29;--line:#263447;--grid:#223042;--txt:#e7edf5;--muted:#94a3b8;--up:#20b486;--down:#e05b67;--accent:#e6c46a;--ma20:#c98500;--ma50:#3987e5;--ma200:#d55181}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1550px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:22px;margin:0 0 3px;font-weight:650}
+h1 .prev{font-size:14px;font-weight:450;color:var(--muted)}
+.sub{color:var(--muted);font-size:12px}
+.last{display:flex;align-items:baseline;gap:10px;font-variant-numeric:tabular-nums}
+.last b{font-size:26px;font-weight:650}.last span{font-size:14px;font-weight:600}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.grp{display:inline-flex;border:1px solid #35445a;border-radius:8px;overflow:hidden}
+.grp button{border:0;border-radius:0;border-right:1px solid #35445a}.grp button:last-child{border-right:0}
+button,select{background:var(--panel);color:var(--txt);border:1px solid #35445a;border-radius:8px;padding:7px 11px;font:inherit;font-size:13px;cursor:pointer}
+button:hover,select:hover{background:#1b2535}
+button.on{background:#243149;color:#fff;box-shadow:inset 0 -2px 0 var(--accent)}
+button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ma-btn i{display:inline-block;width:12px;height:2px;vertical-align:middle;margin-right:6px;border-radius:1px}
+.spacer{flex:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin:0 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 11px;min-width:0}
+.card small{display:block;color:var(--muted);font-size:11px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card strong{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.card em{font-style:normal;font-size:11px;color:var(--muted)}
+.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:12px 2px 6px}
+.chart-wrap{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:6px;margin-top:12px}
+canvas{display:block;width:100%;height:min(70vh,720px);min-height:420px;touch-action:none;cursor:crosshair;user-select:none}
+canvas.dragging{cursor:grabbing}
+#tip{position:absolute;pointer-events:none;background:rgba(14,19,27,.94);border:1px solid #35445a;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.55;font-variant-numeric:tabular-nums;min-width:190px;display:none;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+#tip .d{font-weight:600;margin-bottom:3px}#tip .r{display:flex;justify-content:space-between;gap:14px}#tip .r span:first-child{color:var(--muted)}
+#tip .sw{display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:5px}
+.info{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;padding:8px 6px 2px}
+footer{font-size:12px;color:var(--muted);margin:14px 2px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+footer a{color:#9cc0ff}
+.erro{background:#3a1a20;border:1px solid var(--down);border-radius:8px;padding:14px;margin:20px 0}
+@media(max-width:620px){main{padding:10px;display:flex;flex-direction:column}.sel{display:none}.chart-wrap{order:4}.resumo{order:5}footer{order:6}canvas{height:62vh;min-height:360px}.last b{font-size:20px}.hide-sm{display:none}}
+</style>
+</head>
+<body><main>
+<header>
+ <div>
+  <h1>GRAM / USDT <span class="prev">(antigo TON até 30/06/2026)</span></h1>
+  <div class="sub">Binance Spot · Candles diários (UTC) · <span id="cobertura">—</span></div>
+ </div>
+ <div class="last" title="Último fechamento diário"><b id="lastPx">—</b><span id="lastChg">—</span></div>
+</header>
+
+<div class="toolbar" role="toolbar" aria-label="Controles do gráfico">
+ <div class="grp" id="periodos" aria-label="Período">
+  <button data-p="1M">1M</button><button data-p="3M">3M</button><button data-p="6M">6M</button><button data-p="1A">1A</button><button data-p="YTD">YTD</button><button data-p="ALL">Tudo</button>
+ </div>
+ <div class="grp" aria-label="Tipo de gráfico"><button id="tCandle">Candles</button><button id="tLine">Linha</button></div>
+ <div class="grp" aria-label="Escala"><button id="sLin">Linear</button><button id="sLog">Log</button></div>
+ <div class="grp" aria-label="Médias móveis">
+  <button class="ma-btn" data-ma="20"><i style="background:var(--ma20)"></i>MM20</button><button class="ma-btn" data-ma="50"><i style="background:var(--ma50)"></i>MM50</button><button class="ma-btn" data-ma="200"><i style="background:var(--ma200)"></i>MM200</button>
+ </div>
+ <div class="spacer"></div>
+ <select id="mode" title="Comportamento do crosshair"><option value="snap">Crosshair nos candles</option><option value="free">Crosshair livre</option></select>
+ <button id="lock" title="Fixar crosshair (clique no gráfico ou Esc)">Fixar crosshair</button>
+ <div class="grp hide-sm"><button id="zin" title="Aproximar (+)">＋</button><button id="zout" title="Afastar (−)">－</button></div>
+</div>
+
+<div class="label sel">Candle selecionado</div>
+<section class="cards sel">
+ <div class="card"><small>Data</small><strong id="cDate">—</strong></div>
+ <div class="card"><small>Abertura</small><strong id="cOpen">—</strong></div>
+ <div class="card"><small>Máxima</small><strong id="cHigh">—</strong></div>
+ <div class="card"><small>Mínima</small><strong id="cLow">—</strong></div>
+ <div class="card"><small>Fechamento</small><strong id="cClose">—</strong></div>
+ <div class="card"><small>Variação diária</small><strong id="cChg">—</strong></div>
+ <div class="card"><small>Volume (GRAM)</small><strong id="cVol">—</strong></div>
+ <div class="card"><small>Volume (USDT)</small><strong id="cQv">—</strong></div>
+</section>
+<div class="label resumo">Resumo</div>
+<section class="cards resumo">
+ <div class="card"><small>Período visível</small><strong id="rRange">—</strong></div>
+ <div class="card"><small>Variação no período</small><strong id="rChg">—</strong></div>
+ <div class="card"><small>Máx. / mín. do período</small><strong id="rHiLo">—</strong></div>
+ <div class="card"><small>Máxima histórica</small><strong id="rAth">—</strong></div>
+ <div class="card"><small>Distância da máxima histórica</small><strong id="rDist">—</strong></div>
+ <div class="card"><small>Mínima histórica</small><strong id="rAtl">—</strong></div>
+</section>
+
+<div class="chart-wrap">
+ <canvas id="chart" tabindex="0" aria-label="Gráfico de candles GRAM/USDT"></canvas>
+ <div id="tip" role="status"></div>
+ <div class="info"><span id="ohlc">Passe o cursor sobre um candle para consultar seus dados.</span><span class="hide-sm">Roda/pinça: zoom · Arrastar: deslocar · Clique: fixar · ←/→: navegar · Duplo clique: tudo</span></div>
+</div>
+<footer><span id="foot"></span><span id="links"></span></footer>
+</main>
+
+<!-- Dados: gerado por atualizar_gram.py. Na versão offline esta tag é trocada pelos dados embutidos. -->
+<script src="dados/gram_1d.js" data-embutir></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+if(!Array.isArray(window.GRAM_DATA)||!window.GRAM_DATA.length){
+ document.querySelector('main').insertAdjacentHTML('afterbegin','<div class="erro"><b>Dados não encontrados.</b> O arquivo <code>dados/gram_1d.js</code> não foi carregado. Abra a página junto com a pasta <code>dados/</code> ou use <code>gram_offline.html</code>.</div>');
+ return;
+}
+// ─── dados ───
+const DAY=86400000;
+const D=GRAM_DATA.map(r=>({t:r[0],o:r[1],h:r[2],l:r[3],c:r[4],v:r[5],qv:r[6],n:r[7]}));
+const N=D.length,minT=D[0].t,maxT=D[N-1].t;
+const REBRAND=Date.UTC(2026,6,1); // 01/07/2026: sem negociação (TONUSDT → GRAMUSDT)
+const MA={20:{col:'#c98500'},50:{col:'#3987e5'},200:{col:'#d55181'}};
+for(const p in MA){const n=+p,a=new Array(N).fill(null);let s=0;for(let i=0;i<N;i++){s+=D[i].c;if(i>=n)s-=D[i-n].c;if(i>=n-1)a[i]=s/n}MA[p].v=a}
+let ath=0,atl=0;for(let i=1;i<N;i++){if(D[i].h>D[ath].h)ath=i;if(D[i].l<D[atl].l)atl=i}
+
+// ─── formatação (pt-BR) ───
+const nf=(d1,d2)=>new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d1,maximumFractionDigits:d2});
+const F4=nf(3,4),F2=nf(2,2),F0=nf(0,0);
+const px=v=>'US$ '+F4.format(v);
+const pxAxis=(v,step)=>{const d=Math.min(4,Math.max(2,Math.ceil(-Math.log10(step))));return nf(d,d).format(v)};
+const pct=v=>(v>=0?'+':'−')+F2.format(Math.abs(v))+'%';
+const F1=nf(1,1),sc=x=>(x>=100?F1:F2).format(x);
+const big=v=>v>=1e9?sc(v/1e9)+' bi':v>=1e6?sc(v/1e6)+' mi':v>=1e3?sc(v/1e3)+' mil':F0.format(v);
+const dt=t=>new Date(t).toLocaleDateString('pt-BR',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});
+const dtw=t=>new Date(t).toLocaleDateString('pt-BR',{timeZone:'UTC',weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+const MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const colorOf=v=>v>=0?'var(--up)':'var(--down)';
+const prevClose=i=>i>0?D[i-1].c:D[i].o;
+
+// ─── estado e preferências ───
+const PREF_KEY='gram-grafico-prefs';
+let P={tipo:'candle',escala:'lin',ma:{20:true,50:true,200:false},modo:'snap',periodo:'ALL'};
+try{Object.assign(P,JSON.parse(localStorage.getItem(PREF_KEY)||'{}'))}catch(e){}
+const salvar=()=>{try{localStorage.setItem(PREF_KEY,JSON.stringify(P))}catch(e){}};
+let V={a:minT,b:maxT},sel=N-1,locked=false,hover=null,W=0,H=0;
+const c=$('chart'),g=c.getContext('2d'),tip=$('tip');
+const M={l:10,r:74,t:26,b:30,gap:10};
+
+// ─── geometria ───
+function panes(){const w=W-M.l-M.r,h=H-M.t-M.b-M.gap,vh=Math.max(60,Math.round(h*.2));
+ return{x:M.l,w,price:{y:M.t,h:h-vh},vol:{y:M.t+h-vh+M.gap,h:vh}}}
+const X=t=>{const p=panes();return p.x+(t-V.a)/(V.b-V.a)*p.w};
+const invX=x=>{const p=panes();return V.a+(x-p.x)/p.w*(V.b-V.a)};
+let Ylo=0,Yhi=1;
+const isLog=()=>P.escala==='log';
+const tf=v=>isLog()?Math.log(v):v, itf=v=>isLog()?Math.exp(v):v;
+const Y=v=>{const p=panes().price;return p.y+p.h-(tf(v)-tf(Ylo))/(tf(Yhi)-tf(Ylo))*p.h};
+const invY=y=>{const p=panes().price;return itf(tf(Ylo)+(p.y+p.h-y)/p.h*(tf(Yhi)-tf(Ylo)))};
+function visRange(){let i0=lowerBound(V.a-DAY/2),i1=lowerBound(V.b+DAY/2)-1;return[Math.max(0,i0),Math.min(N-1,i1)]}
+function lowerBound(t){let l=0,r=N;while(l<r){const m=(l+r)>>1;if(D[m].t<t)l=m+1;else r=m}return l}
+function nearest(t){let i=Math.min(N-1,lowerBound(t));if(i>0&&Math.abs(D[i-1].t-t)<Math.abs(D[i].t-t))i--;return i}
+function niceStep(x){const p=10**Math.floor(Math.log10(x)),n=x/p;return(n<1.5?1:n<3.5?2:n<7.5?5:10)*p}
+
+function fitY(){const[i0,i1]=visRange();let lo=Infinity,hi=-Infinity;
+ for(let i=i0;i<=i1;i++){const d=D[i];if(P.tipo==='candle'){lo=Math.min(lo,d.l);hi=Math.max(hi,d.h)}else{lo=Math.min(lo,d.c);hi=Math.max(hi,d.c)}}
+ if(!isFinite(lo)){lo=D[N-1].l;hi=D[N-1].h}
+ if(isLog()){const r=Math.log(hi/lo)||.02;Ylo=lo*Math.exp(-r*.07);Yhi=hi*Math.exp(r*.07)}
+ else{const r=(hi-lo)||hi*.02;Ylo=Math.max(0,lo-r*.07);Yhi=hi+r*.07}}
+
+// ─── desenho ───
+function resize(){const r=c.getBoundingClientRect(),k=Math.max(1,devicePixelRatio||1);W=r.width;H=r.height;c.width=Math.round(W*k);c.height=Math.round(H*k);g.setTransform(k,0,0,k,0,0);draw()}
+function xTicks(){const p=panes(),days=(V.b-V.a)/DAY,maxLab=Math.max(2,p.w/78),out=[];
+ const dayOpts=[1,2,7,14],monOpts=[1,2,3,6,12];
+ for(const s of dayOpts)if(days/s<=maxLab){const first=Math.ceil(V.a/(s*DAY))*s*DAY;for(let t=first;t<=V.b;t+=s*DAY){const d=new Date(t),m1=d.getUTCDate()===1;out.push({t,lab:m1?MES[d.getUTCMonth()]+(d.getUTCMonth()===0?' '+d.getUTCFullYear():''):String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0'),strong:m1})}return out}
+ const months=days/30.44,s=monOpts.find(m=>months/m<=maxLab)||24;
+ const a=new Date(V.a);let y=a.getUTCFullYear(),m=a.getUTCMonth();
+ for(let t=Date.UTC(y,m,1);t<=V.b;m++,t=Date.UTC(y,m,1)){const d=new Date(t),mm=d.getUTCMonth(),yy=d.getUTCFullYear();
+  const ok=s<=12?mm%s===0:(mm===0&&yy%2===0);if(t>=V.a&&ok)out.push({t,lab:mm===0?String(yy):MES[mm]+' '+String(yy).slice(2),strong:mm===0})}
+ return out}
+function draw(){
+ if(!W)return;fitY();const p=panes(),pp=p.price,pv=p.vol;
+ g.clearRect(0,0,W,H);g.font='11px system-ui,-apple-system,"Segoe UI",sans-serif';
+ // grade horizontal + eixo de preço
+ // linear: passos "redondos"; log: ~7 níveis geometricamente espaçados, arredondados a 2 dígitos significativos
+ const ticks=[];if(isLog()){const span=Math.log10(Yhi/Ylo),n=7;for(let i=0;i<=n;i++){const raw=Ylo*10**(span*i/n),st=niceStep(raw/8);ticks.push({v:Math.round(raw/st)*st,st})}}
+ else{const st=niceStep((Yhi-Ylo)/7);for(let v=Math.ceil(Ylo/st)*st;v<=Yhi;v+=st)ticks.push({v:+v.toFixed(10),st})}
+ g.textAlign='left';g.textBaseline='middle';let lastY=1e9;
+ ticks.forEach(({v,st})=>{if(v<=0)return;const y=Math.round(Y(v))+.5;if(y<pp.y||y>pp.y+pp.h||Math.abs(lastY-y)<16)return;lastY=y;g.strokeStyle='#223042';g.lineWidth=1;g.beginPath();g.moveTo(p.x,y);g.lineTo(p.x+p.w,y);g.stroke();g.fillStyle='#94a3b8';g.fillText(pxAxis(v,st),p.x+p.w+8,y)});
+ // grade vertical + datas
+ g.textAlign='center';g.textBaseline='top';
+ for(const k of xTicks()){const x=Math.round(X(k.t))+.5,hw=g.measureText(k.lab).width/2+2;if(x-hw<p.x||x+hw>p.x+p.w+M.r)continue;g.strokeStyle=k.strong?'#2c3d54':'#1d2939';g.beginPath();g.moveTo(x,pp.y);g.lineTo(x,pv.y+pv.h);g.stroke();g.fillStyle=k.strong?'#cbd5e1':'#94a3b8';g.font=(k.strong?'600 ':'')+'11px system-ui,sans-serif';g.fillText(k.lab,x,pv.y+pv.h+8)}
+ g.font='11px system-ui,-apple-system,"Segoe UI",sans-serif';
+ // marcador TON → GRAM
+ if(REBRAND>=V.a-DAY&&REBRAND<=V.b+DAY){const x0=X(REBRAND-DAY/2),x1=X(REBRAND+DAY/2);g.fillStyle='rgba(230,196,106,.07)';g.fillRect(x0,pp.y,Math.max(1,x1-x0),pv.y+pv.h-pp.y);const x=Math.round(X(REBRAND))+.5;g.setLineDash([3,4]);g.strokeStyle='rgba(230,196,106,.55)';g.beginPath();g.moveTo(x,pp.y);g.lineTo(x,pv.y+pv.h);g.stroke();g.setLineDash([]);g.fillStyle='#e6c46a';g.textAlign='center';g.textBaseline='bottom';g.fillText('TON → GRAM',Math.min(Math.max(x,p.x+40),p.x+p.w-40),pp.y-6)}
+ // séries
+ const[i0,i1]=visRange(),ppd=p.w/((V.b-V.a)/DAY),cw=Math.max(1,Math.min(16,ppd*.7));
+ g.save();g.beginPath();g.rect(p.x,pp.y,p.w,pp.h);g.clip();
+ if(P.tipo==='candle'){
+  for(let i=i0;i<=i1;i++){const d=D[i],x=Math.round(X(d.t)),up=d.c>=d.o;g.strokeStyle=g.fillStyle=up?'#20b486':'#e05b67';
+   g.lineWidth=1;g.beginPath();g.moveTo(x+.5,Y(d.h));g.lineTo(x+.5,Y(d.l));g.stroke();
+   if(cw>=2.5){const yo=Y(d.o),yc=Y(d.c),top=Math.min(yo,yc),hh=Math.max(1,Math.abs(yc-yo));g.fillRect(Math.round(x-cw/2)+.5,top,Math.max(1,Math.round(cw)),hh)}}
+ }else{
+  const a=Math.max(0,i0-1),b=Math.min(N-1,i1+1);const grd=g.createLinearGradient(0,pp.y,0,pp.y+pp.h);grd.addColorStop(0,'rgba(131,170,255,.22)');grd.addColorStop(1,'rgba(131,170,255,0)');
+  g.beginPath();for(let i=a;i<=b;i++){const x=X(D[i].t),y=Y(D[i].c);i===a?g.moveTo(x,y):g.lineTo(x,y)}
+  g.lineTo(X(D[b].t),pp.y+pp.h);g.lineTo(X(D[a].t),pp.y+pp.h);g.closePath();g.fillStyle=grd;g.fill();
+  g.beginPath();for(let i=a;i<=b;i++){const x=X(D[i].t),y=Y(D[i].c);i===a?g.moveTo(x,y):g.lineTo(x,y)}g.strokeStyle='#83aaff';g.lineWidth=2;g.lineJoin='round';g.stroke()}
+ for(const k in MA){if(!P.ma[k])continue;const v=MA[k].v;g.beginPath();let on=false;for(let i=Math.max(0,i0-1);i<=Math.min(N-1,i1+1);i++){if(v[i]==null){on=false;continue}const x=X(D[i].t),y=Y(v[i]);on?g.lineTo(x,y):g.moveTo(x,y);on=true}g.strokeStyle=MA[k].col;g.lineWidth=1.6;g.lineJoin='round';g.stroke()}
+ g.restore();
+ // volume
+ let vmax=0;for(let i=i0;i<=i1;i++)vmax=Math.max(vmax,D[i].v);
+ g.save();g.beginPath();g.rect(p.x,pv.y,p.w,pv.h);g.clip();
+ for(let i=i0;i<=i1;i++){const d=D[i],x=X(d.t),h=vmax?d.v/vmax*(pv.h-4):0;g.fillStyle=d.c>=d.o?'rgba(32,180,134,.45)':'rgba(224,91,103,.45)';g.fillRect(Math.round(x-Math.max(1,cw)/2),pv.y+pv.h-h,Math.max(1,Math.round(cw)),h)}
+ g.restore();
+ g.fillStyle='#94a3b8';g.textAlign='left';g.textBaseline='top';g.fillText(big(vmax),p.x+p.w+8,pv.y);g.fillText('Volume',p.x+8,pv.y+4);g.textBaseline='bottom';g.fillText('0',p.x+p.w+8,pv.y+pv.h);
+ g.strokeStyle='#35445a';g.beginPath();g.moveTo(p.x,pv.y-M.gap/2+.5);g.lineTo(p.x+p.w,pv.y-M.gap/2+.5);g.stroke();
+ // legenda das médias (canto superior esquerdo)
+ let lx=p.x+8;g.textBaseline='top';g.textAlign='left';
+ for(const k in MA){if(!P.ma[k])continue;const val=MA[k].v[sel];g.fillStyle=MA[k].col;g.fillRect(lx,pp.y+12,12,2);lx+=16;const s='MM'+k+' '+(val==null?'—':F4.format(val));g.fillStyle='#cbd5e1';g.fillText(s,lx,pp.y+6);lx+=g.measureText(s).width+14}
+ // etiqueta do último fechamento no eixo
+ const last=D[N-1];if(last.t>=V.a&&last.t<=V.b+DAY*30){const y=Y(last.c);if(y>=pp.y&&y<=pp.y+pp.h)tag(y,F4.format(last.c),last.c>=prevClose(N-1)?'#20b486':'#e05b67','#06110c',p)}
+ // crosshair
+ const d=D[sel];if(d&&(hover||locked)){const x=Math.round(X(d.t))+.5;if(x>=p.x&&x<=p.x+p.w){
+  g.setLineDash([4,4]);g.strokeStyle='rgba(203,213,225,.55)';g.lineWidth=1;g.beginPath();g.moveTo(x,pp.y);g.lineTo(x,pv.y+pv.h);
+  const free=P.modo==='free'&&hover&&!locked,yv=free?hover.y:Y(d.c),inPrice=yv>=pp.y&&yv<=pp.y+pp.h;
+  if(inPrice){g.moveTo(p.x,Math.round(yv)+.5);g.lineTo(p.x+p.w,Math.round(yv)+.5)}g.stroke();g.setLineDash([]);
+  if(inPrice)tag(yv,F4.format(free?invY(yv):d.c),'#cbd5e1','#0e131b',p);
+  if(!free){g.beginPath();g.arc(x,Y(d.c),3.5,0,7);g.fillStyle='#e7edf5';g.fill()}
+  const lab=dt(d.t),w=g.measureText(lab).width+12,lx2=Math.min(Math.max(x-w/2,p.x),p.x+p.w-w);g.fillStyle='#cbd5e1';g.fillRect(lx2,pv.y+pv.h+4,w,18);g.fillStyle='#0e131b';g.textAlign='center';g.textBaseline='middle';g.fillText(lab,lx2+w/2,pv.y+pv.h+13);
+  if(locked){g.fillStyle='#e6c46a';g.textAlign='left';g.textBaseline='top';g.fillText('● fixado',p.x+p.w-60,pp.y+6)}
+ }}
+ // bordas
+ g.strokeStyle='#35445a';g.beginPath();g.moveTo(p.x+p.w+.5,pp.y);g.lineTo(p.x+p.w+.5,pv.y+pv.h);g.stroke();
+}
+function tag(y,txt,bg,fg,p){g.font='600 11px system-ui,sans-serif';const w=Math.min(M.r-4,g.measureText(txt).width+10);g.fillStyle=bg;g.fillRect(p.x+p.w+2,y-9,w,18);g.fillStyle=fg;g.textAlign='left';g.textBaseline='middle';g.fillText(txt,p.x+p.w+7,y);g.font='11px system-ui,sans-serif'}
+
+// ─── painéis de texto ───
+function showCards(){const i=sel,d=D[i],ch=(d.c/prevClose(i)-1)*100;
+ $('cDate').textContent=dtw(d.t);$('cOpen').textContent=px(d.o);$('cHigh').textContent=px(d.h);$('cLow').textContent=px(d.l);$('cClose').textContent=px(d.c);
+ $('cChg').textContent=pct(ch);$('cChg').style.color=colorOf(ch);$('cVol').textContent=big(d.v);$('cQv').textContent='US$ '+big(d.qv);
+ $('ohlc').textContent=`${dt(d.t)} · A ${F4.format(d.o)} · M ${F4.format(d.h)} · m ${F4.format(d.l)} · F ${F4.format(d.c)} · ${pct(ch)} · ${F0.format(d.n)} negócios`;
+ tipBox()}
+function showSummary(){const[i0,i1]=visRange();if(i1<i0)return;let hi=i0,lo=i0;for(let i=i0;i<=i1;i++){if(D[i].h>D[hi].h)hi=i;if(D[i].l<D[lo].l)lo=i}
+ const ch=(D[i1].c/D[i0].o-1)*100;$('rRange').textContent=dt(D[i0].t).slice(0,5)+'/'+dt(D[i0].t).slice(8)+' – '+dt(D[i1].t).slice(0,5)+'/'+dt(D[i1].t).slice(8);
+ $('rChg').textContent=pct(ch);$('rChg').style.color=colorOf(ch);$('rHiLo').textContent=F4.format(D[hi].h)+' / '+F4.format(D[lo].l)}
+function staticPanels(){const last=D[N-1],ch=(last.c/prevClose(N-1)-1)*100,dist=(last.c/D[ath].h-1)*100;
+ $('lastPx').textContent=px(last.c);$('lastChg').textContent=pct(ch);$('lastChg').style.color=colorOf(ch);
+ $('rAth').innerHTML=px(D[ath].h)+' <em>'+dt(D[ath].t)+'</em>';$('rAtl').innerHTML=px(D[atl].l)+' <em>'+dt(D[atl].t)+'</em>';
+ $('rDist').textContent=pct(dist);$('rDist').style.color=colorOf(dist);
+ $('cobertura').textContent=`${dt(minT)} a ${dt(maxT)}`;
+ $('foot').textContent=`${F0.format(N)} candles diários · Fonte: Binance Spot — TONUSDT até 30/06/2026, GRAMUSDT desde 02/07/2026 (01/07 sem negociação) · Valores em USDT, horário UTC.`;
+ if(!window.GRAM_EMBUTIDO)$('links').innerHTML='<a href="gram_offline.html" download>Baixar versão offline</a> · <a href="dados/gram_1d.csv" download>CSV</a> · <a href="https://github.com/AlexLucs/gram">GitHub</a>';
+ else $('links').textContent='Versão offline — dados até '+dt(maxT)}
+function tipBox(){const d=D[sel];if(!d||!(hover||locked)){tip.style.display='none';return}
+ const p=panes(),x=X(d.t);if(x<p.x||x>p.x+p.w){tip.style.display='none';return}
+ const ch=(d.c/prevClose(sel)-1)*100;let mas='';for(const k in MA)if(P.ma[k]&&MA[k].v[sel]!=null)mas+=`<div class="r"><span><i class="sw" style="background:${MA[k].col}"></i>MM${k}</span><span>${F4.format(MA[k].v[sel])}</span></div>`;
+ tip.innerHTML=`<div class="d">${dtw(d.t)}</div><div class="r"><span>Abertura</span><span>${F4.format(d.o)}</span></div><div class="r"><span>Máxima</span><span>${F4.format(d.h)}</span></div><div class="r"><span>Mínima</span><span>${F4.format(d.l)}</span></div><div class="r"><span>Fechamento</span><span>${F4.format(d.c)}</span></div><div class="r"><span>Variação</span><span style="color:${colorOf(ch)}">${pct(ch)}</span></div><div class="r"><span>Volume</span><span>${big(d.v)} GRAM</span></div>${mas}`;
+ tip.style.display='block';const tw=tip.offsetWidth,left=x+16+tw>p.x+p.w?x-16-tw:x+16;tip.style.left=(left+6)+'px';tip.style.top=(p.price.y+30)+'px'}
+function render(){draw();showCards();showSummary()}
+
+// ─── navegação ───
+const span=()=>V.b-V.a;
+function clampView(){const s=Math.min(Math.max(span(),DAY*7),(maxT-minT)*1.3+DAY*10);const mid=(V.a+V.b)/2;V.a=mid-s/2;V.b=mid+s/2;
+ const lo=minT-s*.6,hi=maxT+s*.6;if(V.a<lo){V.b+=lo-V.a;V.a=lo}if(V.b>hi){V.a-=V.b-hi;V.b=hi}}
+function zoom(f,anchor=(V.a+V.b)/2){const r=(anchor-V.a)/span(),ns=span()*f;V.a=anchor-ns*r;V.b=V.a+ns;clampView();setPeriodBtn(null);render()}
+function setPeriod(code){const end=maxT+DAY*.5;let start=minT-DAY*.5;const e=new Date(maxT);
+ const back=m=>Date.UTC(e.getUTCFullYear(),e.getUTCMonth()-m,e.getUTCDate());
+ if(code==='1M')start=back(1);else if(code==='3M')start=back(3);else if(code==='6M')start=back(6);else if(code==='1A')start=back(12);else if(code==='YTD')start=Date.UTC(e.getUTCFullYear(),0,1)-DAY*.5;
+ start=Math.max(start,minT-DAY*.5);const pad=(end-start)*.035;V.a=start;V.b=end+pad;P.periodo=code;salvar();setPeriodBtn(code);render()}
+function setPeriodBtn(code){if(code===null)P.periodo=null;document.querySelectorAll('#periodos button').forEach(b=>b.classList.toggle('on',b.dataset.p===code))}
+function select(i){sel=Math.max(0,Math.min(N-1,i));const t=D[sel].t;if(t<V.a||t>V.b){const s=span();V.a=t-s/2;V.b=t+s/2;clampView();setPeriodBtn(null)}showCards();draw()}
+function setLock(v){locked=v;$('lock').classList.toggle('on',locked);$('lock').textContent=locked?'Liberar crosshair':'Fixar crosshair';if(!locked&&!hover)sel=N-1;render()}
+
+// ─── ponteiro (mouse e toque) ───
+const pts=new Map();let drag=null,pinch=null,moved=false;
+const pos=e=>{const r=c.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);const p=pos(e);pts.set(e.pointerId,p);moved=false;
+ if(pts.size===1)drag={x:p.x,a:V.a,b:V.b};else if(pts.size===2){const[q1,q2]=[...pts.values()];pinch={d:Math.abs(q1.x-q2.x)||1,a:V.a,b:V.b,mid:invX((q1.x+q2.x)/2)};drag=null}});
+c.addEventListener('pointermove',e=>{const p=pos(e);if(pts.has(e.pointerId))pts.set(e.pointerId,p);
+ if(pinch&&pts.size===2){const[q1,q2]=[...pts.values()],d=Math.abs(q1.x-q2.x)||1,f=pinch.d/d,s=(pinch.b-pinch.a)*f,r=(pinch.mid-pinch.a)/(pinch.b-pinch.a);V.a=pinch.mid-s*r;V.b=V.a+s;clampView();setPeriodBtn(null);moved=true;render();return}
+ if(drag){const dx=p.x-drag.x;if(Math.abs(dx)>3||moved){moved=true;c.classList.add('dragging');const dt_=-dx/panes().w*(drag.b-drag.a);V.a=drag.a+dt_;V.b=drag.b+dt_;clampView();setPeriodBtn(null);draw();showSummary();tipBox();return}}
+ const pn=panes();if(p.x<pn.x||p.x>pn.x+pn.w||p.y<pn.price.y||p.y>pn.vol.y+pn.vol.h){if(!locked){hover=null;tipBox();draw()}return}
+ hover=p;if(!locked){sel=nearest(invX(p.x));showCards()}draw()});
+function endPtr(e){pts.delete(e.pointerId);c.classList.remove('dragging');if(pts.size<2)pinch=null;
+ if(drag&&!moved&&e.type==='pointerup'){const p=pos(e);sel=nearest(invX(p.x));hover=p;setLock(!locked)}
+ if(pts.size===0){drag=null;showSummary()}}
+c.addEventListener('pointerup',endPtr);c.addEventListener('pointercancel',endPtr);
+c.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!locked){hover=null;sel=N-1;showCards();draw()}});
+c.addEventListener('wheel',e=>{e.preventDefault();const f=Math.exp((e.deltaY||e.deltaX)*.0015);zoom(Math.min(1.6,Math.max(.6,f)),invX(pos(e).x))},{passive:false});
+c.addEventListener('dblclick',()=>{setLock(false);setPeriod('ALL')});
+
+// ─── teclado ───
+window.addEventListener('keydown',e=>{if(e.target.tagName==='SELECT'||e.altKey||e.ctrlKey||e.metaKey)return;const k=e.key,step=e.shiftKey?10:1;
+ if(k==='ArrowLeft'||k==='ArrowRight'){e.preventDefault();if(!locked)setLock(true);select(sel+(k==='ArrowLeft'?-step:step))}
+ else if(k==='Home'){e.preventDefault();if(!locked)setLock(true);select(0)}else if(k==='End'){e.preventDefault();if(!locked)setLock(true);select(N-1)}
+ else if(k==='+'||k==='='){zoom(.75)}else if(k==='-'||k==='_'){zoom(1.33)}else if(k==='Escape'&&locked){setLock(false)}});
+
+// ─── controles ───
+document.querySelectorAll('#periodos button').forEach(b=>b.onclick=()=>setPeriod(b.dataset.p));
+function syncButtons(){$('tCandle').classList.toggle('on',P.tipo==='candle');$('tLine').classList.toggle('on',P.tipo==='line');$('sLin').classList.toggle('on',P.escala==='lin');$('sLog').classList.toggle('on',P.escala==='log');
+ document.querySelectorAll('[data-ma]').forEach(b=>{b.classList.toggle('on',!!P.ma[b.dataset.ma]);b.setAttribute('aria-pressed',!!P.ma[b.dataset.ma])});$('mode').value=P.modo}
+const setP=(k,v)=>{P[k]=v;salvar();syncButtons();render()};
+$('tCandle').onclick=()=>setP('tipo','candle');$('tLine').onclick=()=>setP('tipo','line');
+$('sLin').onclick=()=>setP('escala','lin');$('sLog').onclick=()=>setP('escala','log');
+document.querySelectorAll('[data-ma]').forEach(b=>b.onclick=()=>{P.ma[b.dataset.ma]=!P.ma[b.dataset.ma];salvar();syncButtons();render()});
+$('mode').onchange=e=>setP('modo',e.target.value);
+$('lock').onclick=()=>setLock(!locked);
+$('zin').onclick=()=>zoom(.7);$('zout').onclick=()=>zoom(1.4);
+
+// ─── início ───
+syncButtons();staticPanels();
+new ResizeObserver(resize).observe(c);
+setPeriod(['1M','3M','6M','1A','YTD','ALL'].includes(P.periodo)?P.periodo:'ALL');
+})();
+</script>
+</body></html>
