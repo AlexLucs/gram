@@ -14,7 +14,8 @@ Gráfico interativo de candles diários do **GRAM** (antigo **TON**), com dados 
 | `dados/gram_1d.js` | Gerado a partir do CSV, para a página funcionar também via `file://` |
 | `gram_offline.html` | Gerado: `index.html` com os dados embutidos |
 | `atualizar_gram.py` | Baixa os candles que faltam e regenera os arquivos acima |
-| `.github/workflows/atualizar.yml` | Roda o script todo dia às 01:20 UTC e faz commit se houver dado novo |
+| `.github/workflows/atualizar.yml` | Roda o script todo dia às 01:20 UTC e faz commit se houver dado novo. Também roda quando `index.html` ou o script mudam, para regenerar a versão offline |
+| `.github/dependabot.yml` | Abre um PR mensal quando sair versão nova de alguma action (ex.: `actions/checkout`) |
 
 ## De onde vêm os dados
 
@@ -35,7 +36,9 @@ python atualizar_gram.py --offline    # idem + gera gram_offline.html
 python atualizar_gram.py --sem-rede   # só normaliza o CSV e regenera os arquivos
 ```
 
-Só usa a biblioteca padrão do Python (3.9+). Depois de editar `index.html`, rode `--sem-rede --offline` para atualizar a versão offline. O workflow também faz isso na execução seguinte.
+Só usa a biblioteca padrão do Python (3.9+). No GitHub roda com o Python 3.12 da imagem `ubuntu-24.04`, sem `setup-python`.
+
+O robô faz um commit por dia, então rode `git pull` antes de editar localmente. Depois de enviar uma alteração em `index.html`, o workflow regenera o `gram_offline.html` sozinho.
 
 ## Configuração no GitHub (uma vez)
 
